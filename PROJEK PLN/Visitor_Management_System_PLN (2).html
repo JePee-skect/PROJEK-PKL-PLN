@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visitor Management System – PLN</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Tema & variabel ===== */
+:root {
+  --card: #fafaf8; --text: #111; --muted: #555; --input: #fafaf8; --line: #d9d9d4; --th: #fff;
+  --side: #17435a; --bg: #1b6378; --acc: #1b6378;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) { --card: #1f2a30; --text: #eef2f3; --muted: #b5c0c5; --input: #17212626; --line: #3b4a52; }
+}
+:root[data-theme=dark] { --card: #1f2a30; --text: #eef2f3; --muted: #b5c0c5; --input: #17212626; --line: #3b4a52; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+* { box-sizing: border-box; }
+.hide { display: none !important; }
+
+/* ===== Layout ===== */
+body { margin: 0; display: flex; min-height: 100vh; font-family: Poppins, system-ui, sans-serif; background: var(--bg); color: var(--text); }
+aside { width: 250px; height: 100vh; position: sticky; top: 0; flex: none; display: flex; flex-direction: column; background: var(--side); color: #fff; }
+main { flex: 1; min-width: 0; padding: 28px 40px; }
+.card { max-width: 1500px; padding: 30px; border-radius: 14px; background: var(--card); }
+h1 { font-size: 23px; margin: 0 0 24px; }
+h2 { font-size: 20px; margin: 26px 0 12px; }
+
+/* ===== Sidebar ===== */
+.brand { display: flex; gap: 14px; align-items: center; padding: 24px 20px; font-size: 15px; font-weight: 500; line-height: 1.3; }
+.logo { position: relative; width: 36px; height: 40px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; flex: none; background: #ffe600; color: #e2231a; font-size: 20px; }
+.logo i { position: absolute; left: 0; bottom: -12px; font-size: 8px; font-style: normal; font-weight: 600; letter-spacing: 2px; color: #0097d8; }
+nav a { display: flex; gap: 12px; align-items: center; padding: 14px 22px; color: #fff; font-size: 14px; text-decoration: none; opacity: .9; }
+nav a.on { background: rgba(255,255,255,.12); }
+.me { width: 100%; margin-top: auto; padding: 16px 20px; display: flex; gap: 12px; align-items: center; border: 0; background: none; color: #fff; font: inherit; text-align: left; cursor: pointer; }
+.av { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; background: #e8eef0; color: var(--side); font-weight: 600; }
+
+/* ===== Form ===== */
+label { display: block; margin: 18px 0 8px; color: var(--muted); font-size: 15px; }
+input[type=text], input[type=date], select { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--input); color: var(--text); font: inherit; }
+.bad { border-color: #e5483b !important; }
+.err { margin-top: 6px; color: #e5483b; font-size: 13px; }
+.err:empty { display: none; }
+.err.hint { color: var(--muted); }
+.btn { padding: 12px 28px; border: 0; border-radius: 8px; background: var(--acc); color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+.btn.sm { padding: 8px 14px; font-size: 13px; }
+.btn.ghost { background: none; border: 2px solid var(--acc); color: var(--acc); }
+.photo { text-align: center; }
+.ph { display: block; width: 168px; height: 233px; margin: 0 auto 14px; object-fit: cover; background: #bdbdbd; }
+
+/* Checkbox APD */
+.apd { display: flex; gap: 28px; flex-wrap: wrap; font-weight: 600; color: var(--muted); }
+.apd label { margin: 0; }
+.chk { position: relative; display: block; cursor: pointer; }
+.chk input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.chk span { display: flex; align-items: center; gap: 10px; padding: 11px 18px; border: 2px solid var(--line); border-radius: 10px; font-weight: 600; color: var(--muted); user-select: none; transition: .15s; }
+.chk span::before { content: ""; flex: none; width: 22px; height: 22px; border: 2px solid var(--muted); border-radius: 6px; text-align: center; font-size: 16px; line-height: 18px; }
+.chk input:checked + span { background: var(--acc); border-color: var(--acc); color: #fff; }
+.chk input:checked + span::before { content: "✓"; background: #fff; border-color: #fff; color: var(--acc); }
+.chk input:focus-visible + span { outline: 3px solid #ffe600; }
+.chk.none input:checked + span { background: #c0392b; border-color: #c0392b; }
+.chk.none input:checked + span::before { color: #c0392b; }
+
+/* Halaman terima kasih */
+.thanks { max-width: 640px; margin: 8vh auto 0; text-align: center; }
+.thanks .tick { width: 88px; height: 88px; margin: 0 auto 20px; display: grid; place-items: center; border-radius: 50%; background: var(--acc); color: #fff; font-size: 46px; animation: pop .5s ease-out; }
+.thanks p { margin: 0 0 8px; line-height: 1.6; color: var(--muted); }
+.thanks .btn { margin-top: 24px; padding: 16px 34px; font-size: 16px; }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ===== Dashboard ===== */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.stat { padding: 26px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--input); text-align: center; box-shadow: 0 1px 2px #0002; }
+.stat b { display: block; font-size: 34px; font-weight: 400; color: var(--acc); }
+.filters { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-end; }
+.filters label { margin: 0 0 6px; font-size: 14px; color: var(--text); }
+.filters input { width: auto; }
+.filters .btn { margin-left: auto; }
+.tw { margin-top: 22px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { padding: 14px 12px; border-left: 1px solid #fff5; background: var(--acc); color: var(--th); text-align: left; }
+td { padding: 12px; border: 1px solid var(--line); }
+td.e { padding: 16px; text-align: center; }
+
+/* ===== Dialog ===== */
+#ov { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: #0009; }
+.dlg { width: 100%; max-width: 420px; max-height: 85vh; overflow: auto; padding: 24px; border-radius: 14px; background: var(--card); color: var(--text); }
+.dlg h2 { margin: 0 0 14px; font-size: 19px; }
+.dlg p { margin: 0; line-height: 1.5; }
+.dlg dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+.dlg dt { color: var(--muted); }
+.dlg dd { margin: 0; font-weight: 500; word-break: break-word; }
+.acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+/* ===== Asisten robot ===== */
+#bot { position: fixed; z-index: 40; right: max(18px, env(safe-area-inset-right, 0px)); bottom: max(18px, env(safe-area-inset-bottom, 0px)); font-size: 14px; }
+#fab { display: block; width: 130px; height: 190px; margin-left: auto; padding: 0; border: 0; background: none; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(0 8px 10px #0006); }
+#bot.drag #fab { cursor: grabbing; }
+#bot.drag #bub { opacity: .4; }
+
+#panel { position: absolute; right: 0; bottom: 198px; width: 270px; max-width: calc(100vw - 36px); max-height: calc(100vh - 250px); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; background: var(--card); box-shadow: 0 10px 40px #0007; }
+#stage { position: relative; flex: none; height: 42px; background: linear-gradient(var(--side), var(--acc)); }
+#stage span { position: absolute; left: 12px; top: 10px; color: #fff; font-size: 13px; font-weight: 500; }
+#spk { position: absolute; right: 10px; top: 8px; padding: 4px 10px; border: 0; border-radius: 20px; background: #fff3; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+#msgs { flex: 1; height: 110px; min-height: 60px; display: flex; flex-direction: column; gap: 6px; overflow: auto; padding: 8px 10px; font-size: 12.5px; }
+.m { max-width: 88%; padding: 8px 12px; border-radius: 12px; line-height: 1.4; }
+.m.b { align-self: flex-start; background: var(--input); border: 1px solid var(--line); }
+.m.u { align-self: flex-end; background: var(--acc); color: #fff; }
+#chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 12px 8px; }
+#chips button { padding: 4px 12px; border: 1px solid var(--acc); border-radius: 16px; background: none; color: var(--acc); font: inherit; font-size: 12px; cursor: pointer; }
+#cf { display: flex; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--line); }
+#cf input { padding: 9px; font-size: 13px; }
+
+#bub { position: absolute; right: 122px; bottom: 62px; width: max-content; max-width: min(270px, calc(100vw - 180px)); padding: 12px 16px; border: 3px solid #3bb7e6; border-radius: 20px; background: #10262e; color: #fff; font-size: 13.5px; font-weight: 700; line-height: 1.45; box-shadow: 0 6px 24px #0006; cursor: pointer; }
+#bub::after { content: ""; position: absolute; right: -13px; top: 30px; border: 10px solid transparent; border-left: 12px solid #3bb7e6; border-right: 0; }
+
+/* Posisi menyesuaikan sisi layar saat robot digeser */
+#bot.left #bub { right: auto; left: 122px; }
+#bot.left #bub::after { right: auto; left: -13px; border: 10px solid transparent; border-right: 12px solid #3bb7e6; border-left: 0; }
+#bot.left #panel { right: auto; left: 0; }
+#bot.top #panel { bottom: auto; top: 198px; max-height: calc(100vh - 260px); }
+
+/* ===== Responsif ===== */
+@media (max-width: 800px) {
+  body { flex-direction: column; }
+  aside { width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .brand { padding: 12px 16px; }
+  .brand .logo { margin: 0; }
+  nav { display: flex; }
+  .me { width: auto; margin-left: auto; padding: 8px 16px; }
+  main { padding: 16px; }
+  .card { padding: 18px; }
+  .stats { grid-template-columns: 1fr; }
+  .filters .btn { margin-left: 0; }
+}
+@media (max-width: 600px) {
+  #fab { width: 98px; height: 143px; }
+  #bub { right: 92px; bottom: 40px; font-size: 12.5px; }
+  #panel { bottom: 152px; max-height: calc(100vh - 210px); }
+  #bot.left #bub { left: 92px; }
+  #bot.top #panel { top: 152px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+<aside>
+  <div class="brand"><div class="logo">⚡<i>PLN</i></div><div>Visitor Management<br>System</div></div>
+  <nav>
+    <a href="#dashboard" id="nav-dashboard">⌂ Dashboard</a>
+    <a href="#registrasi" id="nav-registrasi">☺ Registrasi</a>
+  </nav>
+  <button class="me" id="role" title="Klik untuk ganti peran">
+    <span class="av" id="av">a</span><span id="rn">admin</span><span style="margin-left:auto">⇅</span>
+  </button>
+</aside>
+
+<main>
+  <!-- ========== DASHBOARD ========== -->
+  <section class="card hide" id="v-dashboard">
+    <h1 style="font-size:21px;margin-bottom:12px">Daftar Tamu</h1>
+    <div class="stats">
+      <div class="stat"><b id="s1">0</b>Tamu Hari Ini</div>
+      <div class="stat"><b id="s2">0</b>Check In Hari Ini</div>
+      <div class="stat"><b id="s3">0</b>Check Out Hari Ini</div>
+    </div>
+    <h2>Data Tamu</h2>
+    <div class="filters">
+      <div><label for="d1">Tanggal Awal Data:</label><input type="date" id="d1"></div>
+      <div><label for="d2">Tanggal Akhir Data:</label><input type="date" id="d2"></div>
+      <div><label for="q">Cari Nama Tamu:</label><input type="text" id="q" placeholder="Ketik nama tamu..."></div>
+      <button class="btn sm" id="xl">Export to Excel</button>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>No</th><th>Tanggal Kunjungan</th><th>Nama Tamu</th><th>Nama Pegawai Tujuan</th><th>Keperluan</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== REGISTRASI ========== -->
+  <section class="card hide" id="v-registrasi">
+    <h1>Formulir Tamu PLN PUSHARLIS UP2WVI</h1>
+    <form id="f">
+      <div class="photo">
+        <img class="ph" id="pv" alt="Foto tamu" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 168 233'%3E%3Crect width='168' height='233' fill='%23bdbdbd'/%3E%3Ccircle cx='84' cy='70' r='34' fill='%238a8a8a'/%3E%3Cpath d='M20 170c0-45 30-60 64-60s64 15 64 60z' fill='%238a8a8a'/%3E%3Ctext x='84' y='195' font-size='22' fill='%23f2f2f2' text-anchor='middle' font-family='sans-serif'%3ENo Image%3C/text%3E%3Ctext x='84' y='220' font-size='22' fill='%23f2f2f2' text-anchor='middle' font-family='sans-serif'%3EAvailable%3C/text%3E%3C/svg%3E">
+        <button type="button" class="btn" id="pb" style="padding:16px 30px">Ambil Foto</button>
+        <input type="file" id="pf" accept="image/*" class="hide">
+      </div>
+
+      <label for="nama">Nama Tamu*</label><input type="text" id="nama" required>
+      <label for="usaha">Nama Perusahaan*</label><input type="text" id="usaha" required>
+      <label for="alamat">Alamat Perusahaan Tamu*</label><input type="text" id="alamat" required>
+      <label for="pegawai">Nama Pegawai Yang Dituju*</label><input type="text" id="pegawai" required>
+
+      <label id="apdl">Pemakaian APD*</label>
+      <div class="apd" id="apd">
+        <label class="chk"><input type="checkbox" value="Safety Helmet"><span>Safety Helmet</span></label>
+        <label class="chk"><input type="checkbox" value="Safety Shoes"><span>Safety Shoes</span></label>
+        <label class="chk"><input type="checkbox" value="Seragam Kerja"><span>Seragam Kerja</span></label>
+        <label class="chk"><input type="checkbox" id="apdall"><span>Pilih semua</span></label>
+        <label class="chk none"><input type="checkbox" id="apdnone"><span>Tidak memakai APD</span></label>
+      </div>
+
+      <label for="perlu">Keperluan Kunjungan*</label><input type="text" id="perlu" required>
+      <label for="ktp">No. KTP atau Identitas Lainnya*</label><input type="text" id="ktp" required autocomplete="off" maxlength="20">
+      <div class="err" id="ktp-e"></div>
+      <label for="kend">Kendaraan (Jenis / No.Pol)*</label><input type="text" id="kend" required>
+      <label for="tag">No Name Tag Tamu*</label><input type="text" id="tag" required>
+      <label for="jml">Jumlah Tamu*</label><select id="jml" required></select>
+      <button class="btn" id="sub" type="button" style="margin-top:26px">Kirim Registrasi</button>
+    </form>
+  </section>
+
+  <!-- ========== TERIMA KASIH ========== -->
+  <section class="card thanks hide" id="v-terima">
+    <div class="tick">✓</div>
+    <h1 id="thanks-title">Terima Kasih</h1>
+    <p id="thanks-text"></p>
+    <p>Silakan menuju petugas keamanan untuk mengambil name tag.</p>
+    <button class="btn" id="again">Isi Formulir Lagi</button>
+  </section>
+</main>
+
+<!-- Dialog konfirmasi / sukses -->
+<div id="ov" class="hide"><div class="dlg"><h2 id="ovt"></h2><div id="ovb"></div><div class="acts" id="ova"></div></div></div>
+
+<!-- Asisten robot -->
+<div id="bot">
+  <div id="bub" class="hide"></div>
+  <div id="panel" class="hide">
+    <div id="stage"><span>Asisten PLN</span><button id="spk">🔊 Suara: aktif</button></div>
+    <div id="msgs"></div>
+    <div id="chips"></div>
+    <div id="cf"><input type="text" id="ci" placeholder="Tanya asisten..."><button class="btn sm" id="cs">Kirim</button></div>
+  </div>
+  <button id="fab" aria-label="Buka asisten"><canvas id="fabc" width="156" height="156" style="width:100%;height:100%"></canvas></button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   1. UTILITAS & STATE
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } },
+  set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+};
+const pad = n => String(n).padStart(2, '0');
+const ymd = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+let role = store.get('vms-role', 'admin');
+let data = store.get('vms-data', []);
+let photo = '';
+
+const ROLE_PAGES = ['dashboard', 'registrasi'];
+const APD_LIST = ['Safety Helmet', 'Safety Shoes', 'Seragam Kerja'];
+const PHOTO_PLACEHOLDER = $('#pv').src;
+
+/* =====================================================================
+   2. ROLE & ROUTING
+   ===================================================================== */
+function setRole(r) {
+  role = r;
+  store.set('vms-role', r);
+  document.documentElement.dataset.role = r;
+  $('#rn').textContent = r;
+  $('#av').textContent = r[0];
+  $('#nav-dashboard').classList.toggle('hide', r !== 'admin');
+  renderChips();
+  route();
+}
+
+function route() {
+  let page = location.hash.slice(1);
+  if (role !== 'admin' || !ROLE_PAGES.includes(page)) page = role === 'admin' ? 'dashboard' : 'registrasi';
+  ROLE_PAGES.forEach(p => {
+    $('#v-' + p).classList.toggle('hide', p !== page);
+    $('#nav-' + p).classList.toggle('on', p === page);
+  });
+  $('#v-terima').classList.add('hide');
+  if (page === 'dashboard') renderTable();
+  botHello(page);
+}
+
+$('#role').onclick = () => setRole(role === 'admin' ? 'user' : 'admin');
+addEventListener('hashchange', route);
+
+/* =====================================================================
+   3. DASHBOARD
+   ===================================================================== */
+$('#d1').value = $('#d2').value = ymd();
+
+function renderTable() {
+  const today = ymd(), from = $('#d1').value, to = $('#d2').value, query = $('#q').value.toLowerCase();
+  $('#s1').textContent = data.filter(r => r.tgl === today).length;
+  $('#s2').textContent = data.filter(r => r.inAt === today).length;
+  $('#s3').textContent = data.filter(r => r.outAt === today).length;
+
+  const rows = data.filter(r => (!from || r.tgl >= from) && (!to || r.tgl <= to) && r.nama.toLowerCase().includes(query));
+  const action = r => r.status === 'Selesai' ? '—'
+    : `<button class="btn sm" data-id="${r.id}">${r.status === 'Menunggu' ? 'Check In' : 'Check Out'}</button>`;
+
+  $('#tb').innerHTML = rows.length
+    ? rows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.tgl}</td><td>${esc(r.nama)}</td><td>${esc(r.pegawai)}</td><td>${esc(r.perlu)}</td><td>${r.status}</td><td>${action(r)}</td></tr>`).join('')
+    : '<tr><td colspan="7" class="e">Tidak ada data tamu.</td></tr>';
+}
+['d1', 'd2', 'q'].forEach(id => $('#' + id).oninput = renderTable);
+
+$('#tb').onclick = e => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+  const r = data.find(x => x.id == id);
+  if (r.status === 'Menunggu') { r.status = 'Check In'; r.inAt = ymd(); }
+  else { r.status = 'Selesai'; r.outAt = ymd(); }
+  store.set('vms-data', data);
+  renderTable();
+  say(r.nama + (r.status === 'Check In' ? ' berhasil check in.' : ' sudah check out. Terima kasih atas kunjungannya.'));
+};
+
+$('#xl').onclick = async () => {
+  const head = ['Tanggal', 'Nama Tamu', 'Perusahaan', 'Pegawai Tujuan', 'APD', 'Keperluan', 'KTP', 'Kendaraan', 'Name Tag', 'Jumlah', 'Status'];
+  const rows = data.map(r => [r.tgl, r.nama, r.usaha, r.pegawai, r.apd, r.perlu, r.ktp, r.kend, r.tag, r.jml, r.status]);
+  const tsv = [head, ...rows].map(r => r.join('\t')).join('\n');
+  try { await navigator.clipboard.writeText(tsv); alert('Data disalin. Tempel (Ctrl+V) ke Excel.'); }
+  catch (e) { alert('Gagal menyalin data.'); }
+};
+
+/* =====================================================================
+   4. FORMULIR REGISTRASI
+   ===================================================================== */
+const FIELDS = ['nama', 'usaha', 'alamat', 'pegawai', 'perlu', 'ktp', 'kend', 'tag', 'jml'];
+$('#jml').innerHTML = '<option value="">Pilih jumlah (1–99)</option>' + Array.from({ length: 99 }, (_, i) => `<option>${i + 1}</option>`).join('');
+$('#f').onsubmit = e => { e.preventDefault(); return false; };
+
+/* ----- Foto ----- */
+/* Simpan foto dari sumber apa pun (video kamera atau gambar), dipotong tengah (cover) */
+function setPhoto(source, srcW, srcH) {
+  const W = 168, H = 233, canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const scale = Math.max(W / srcW, H / srcH);
+  canvas.getContext('2d').drawImage(source, (W - srcW * scale) / 2, (H - srcH * scale) / 2, srcW * scale, srcH * scale);
+  photo = canvas.toDataURL('image/jpeg', .7);
+  $('#pv').src = photo;
+  $('#pb').textContent = 'Ambil Ulang Foto';
+  say('Foto berhasil ditambahkan. Silakan lanjut mengisi nama tamu.');
+  if (guideIdx === 0) setTimeout(() => goStep(1), 3500);
+}
+
+/* Kamera langsung di dalam web */
+let camStream = null;
+function stopCamera() {
+  if (camStream) camStream.getTracks().forEach(t => t.stop());
+  camStream = null;
+}
+function closeCamera() { stopCamera(); $('#ov').classList.add('hide'); }
+
+async function openCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    say('Kamera tidak tersedia di perangkat ini. Silakan pilih foto dari galeri.');
+    return $('#pf').click();
+  }
+  openDialog('Ambil Foto',
+    '<video id="cam" autoplay playsinline muted style="width:100%;border-radius:10px;background:#000;transform:scaleX(-1)"></video>',
+    '<button class="btn ghost" id="cgal">Galeri</button><button class="btn ghost" id="ccan">Batal</button><button class="btn" id="csnap">Ambil Foto</button>');
+  say('Hadapkan wajah Anda ke kamera, lalu tekan Ambil Foto.');
+
+  $('#ccan').onclick = () => { closeCamera(); say('Foto belum diambil. Anda bisa mencobanya lagi kapan saja.'); };
+  $('#cgal').onclick = () => { closeCamera(); $('#pf').click(); };
+  $('#csnap').onclick = () => {
+    const v = $('#cam');
+    if (!v.videoWidth) return say('Kamera belum siap, tunggu sebentar.');
+    setPhoto(v, v.videoWidth, v.videoHeight);
+    closeCamera();
+  };
+
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } }, audio: false });
+    $('#cam').srcObject = camStream;
+  } catch (e) {
+    closeCamera();
+    say('Kamera tidak bisa dibuka. Pastikan izin kamera diaktifkan, atau pilih foto dari galeri.');
+    $('#pf').click();
+  }
+}
+$('#pb').onclick = openCamera;
+
+/* Cadangan: pilih foto dari galeri / berkas */
+$('#pf').addEventListener('cancel', () => say('Foto belum dipilih. Anda bisa mencobanya lagi kapan saja.'));
+$('#pf').onchange = e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) return say('File yang dipilih bukan gambar. Silakan pilih foto.');
+  const url = URL.createObjectURL(file), img = new Image();
+  img.onerror = () => say('Foto gagal dimuat. Silakan pilih foto lain.');
+  img.onload = () => { setPhoto(img, img.width, img.height); URL.revokeObjectURL(url); };
+  img.src = url;
+};
+
+/* ----- APD ----- */
+const apdBoxes = $$('#apd input[value]');
+
+function onApdDone() {
+  say('APD lengkap, bagus! Terima kasih sudah mematuhi keselamatan kerja.');
+  if (guideIdx === 5) setTimeout(() => goStep(6), 3500);
+}
+function onApdChange() {
+  const checked = apdBoxes.filter(b => b.checked).length;
+  const missing = apdBoxes.filter(b => !b.checked).map(b => b.value);
+  $('#apdall').checked = checked === APD_LIST.length;
+  if (checked > 0) $('#apdnone').checked = false;
+  if (checked === APD_LIST.length) return onApdDone();
+  if (checked > 0) say(`Anda baru memakai ${checked} dari 3 APD. ${missing.join(' dan ')} belum dicentang. Untuk area kerja sebaiknya lengkap, silakan ambil yang kurang di petugas keamanan.`);
+}
+apdBoxes.forEach(b => b.addEventListener('change', onApdChange));
+$('#apdall').addEventListener('change', e => {
+  apdBoxes.forEach(b => b.checked = e.target.checked);
+  if (e.target.checked) { $('#apdnone').checked = false; onApdDone(); }
+});
+$('#apdnone').addEventListener('change', e => {
+  if (!e.target.checked) return;
+  apdBoxes.forEach(b => b.checked = false);
+  $('#apdall').checked = false;
+  say('Anda tidak memakai APD. Demi keselamatan, silakan ambil dan kenakan APD di petugas keamanan sebelum masuk area kerja.');
+  if (guideIdx === 5) setTimeout(() => goStep(6), 7000);
+});
+
+/* ----- Validasi KTP / identitas ----- */
+function ktpError() {
+  const v = $('#ktp').value.trim();
+  if (!v) return '';
+  if (/^\d+$/.test(v)) {
+    if (v.length === 12) return '';                       // dianggap SIM
+    if (v.length === 16) {
+      const prov = +v.slice(0, 2);
+      return prov < 11 || prov > 94 ? `Dua digit awal (${v.slice(0, 2)}) bukan kode provinsi yang valid. Periksa kembali nomor KTP Anda.` : '';
+    }
+    const n = v.length;
+    return n < 16
+      ? `Nomor KTP kurang ${16 - n} digit. KTP harus 16 digit angka, sedangkan yang Anda isi baru ${n} digit.`
+      : `Nomor KTP berlebih ${n - 16} digit. KTP harus 16 digit angka.`;
+  }
+  return /^[A-Za-z0-9]{6,20}$/.test(v) ? '' : 'Nomor identitas salah. KTP hanya berisi 16 digit angka. Paspor atau identitas lain hanya huruf dan angka, tanpa spasi atau simbol.';
+}
+
+let ktpTimer, lastKtpMsg = '';
+function ktpAnnounce() {
+  const v = $('#ktp').value.trim(), err = ktpError();
+  $('#ktp-e').textContent = err;
+  $('#ktp-e').className = 'err';
+  $('#ktp').classList.toggle('bad', !!err);
+  let msg = err;
+  if (!msg && /^\d{12}$/.test(v)) msg = 'Nomor 12 digit ini saya anggap nomor SIM. Jika Anda memakai KTP, nomornya harus 16 digit.';
+  if (msg && msg !== lastKtpMsg) { lastKtpMsg = msg; say(msg); }
+  if (!msg) lastKtpMsg = '';
+}
+$('#ktp').addEventListener('input', () => {
+  const v = $('#ktp').value.trim(), err = ktpError(), box = $('#ktp-e');
+  const partial = /^\d+$/.test(v) && v.length < 16;
+  box.textContent = partial ? `${v.length}/16 digit` : err;
+  box.className = partial ? 'err hint' : 'err';
+  $('#ktp').classList.toggle('bad', !!err && !partial);
+  clearTimeout(ktpTimer);
+  ktpTimer = setTimeout(ktpAnnounce, 1800);
+});
+$('#ktp').addEventListener('change', () => { clearTimeout(ktpTimer); ktpAnnounce(); });
+
+/* ----- Kirim & konfirmasi ----- */
+$('#sub').onclick = () => {
+  const apd = apdBoxes.filter(b => b.checked).map(b => b.value);
+  const noApd = $('#apdnone').checked;
+
+  const empty = FIELDS.find(id => !$('#' + id).value.trim());
+  if (empty) {
+    say('Mohon lengkapi kolom ' + $(`label[for=${empty}]`).textContent.replace('*', '') + ' terlebih dahulu.');
+    return $('#' + empty).focus();
+  }
+  const ktpErr = ktpError();
+  if (ktpErr) { say(ktpErr); return $('#ktp').focus(); }
+  if (!apd.length && !noApd) {
+    say('Mohon pilih APD yang Anda pakai, atau pilih Tidak memakai APD.');
+    return $('#apdl').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  showConfirm(apd, noApd, () => {
+    const rec = { id: Date.now(), tgl: ymd(), apd: noApd ? 'Tidak memakai APD' : apd.join(', '), foto: photo, status: 'Menunggu' };
+    FIELDS.forEach(id => rec[id] = $('#' + id).value.trim());
+    data.unshift(rec);
+    store.set('vms-data', data);
+
+    $('#f').reset();
+    photo = '';
+    $('#pv').src = PHOTO_PLACEHOLDER;
+    $('#pb').textContent = 'Ambil Foto';
+    $('#ktp-e').textContent = '';
+    $('#ktp').classList.remove('bad');
+
+    const lacking = APD_LIST.filter(x => !apd.includes(x));
+    say(`Registrasi berhasil. Terima kasih, ${rec.nama}. Silakan menuju petugas keamanan untuk mengambil name tag.` +
+        (lacking.length ? ` APD yang belum Anda pakai: ${lacking.join(', ')}. Mohon ambil di petugas keamanan.` : ''));
+    showDone(rec.nama);
+  });
+};
+
+function openDialog(title, bodyHtml, actionsHtml) {
+  $('#ovt').textContent = title;
+  $('#ovb').innerHTML = bodyHtml;
+  $('#ova').innerHTML = actionsHtml;
+  $('#ov').classList.remove('hide');
+}
+
+function showConfirm(apd, noApd, onOk) {
+  const labels = { nama: 'Nama Tamu', usaha: 'Perusahaan', pegawai: 'Pegawai Dituju', perlu: 'Keperluan', ktp: 'No. Identitas', jml: 'Jumlah Tamu' };
+  const rows = Object.keys(labels).map(k => `<dt>${labels[k]}</dt><dd>${esc($('#' + k).value.trim())}</dd>`).join('');
+  const apdText = noApd ? 'Tidak memakai APD' : apd.join(', ');
+  openDialog('Konfirmasi Registrasi', `<dl>${rows}<dt>APD</dt><dd>${esc(apdText)}</dd></dl>`,
+    '<button class="btn ghost" id="ovn">Periksa lagi</button><button class="btn" id="ovy">Konfirmasi</button>');
+  lastHint = '';
+  say('Mohon periksa kembali data Anda. Jika sudah benar, tekan Konfirmasi.');
+  $('#ovn').onclick = () => { $('#ov').classList.add('hide'); say('Baik, silakan periksa dan perbaiki data Anda.'); };
+  $('#ovy').onclick = () => { $('#ov').classList.add('hide'); onOk(); };
+}
+
+function showDone(name) {
+  openDialog('✓ Registrasi Berhasil',
+    `<p>Terima kasih, <b>${esc(name)}</b>. Data Anda sudah tercatat. Silakan menuju petugas keamanan untuk mengambil name tag.</p>`,
+    '<button class="btn" id="ovd">Selesai</button>');
+  $('#ovd').onclick = () => { $('#ov').classList.add('hide'); showThanks(name); };
+}
+
+/* Halaman terima kasih: tampil setelah registrasi selesai atau saat tamu mengucapkan terima kasih */
+function showThanks(name) {
+  $('#v-registrasi').classList.add('hide');
+  $('#v-terima').classList.remove('hide');
+  $('#thanks-title').textContent = name ? `Terima kasih, ${name}!` : 'Terima Kasih!';
+  $('#thanks-text').textContent = 'Semoga kunjungan Anda lancar.';
+  scrollTo({ top: 0, behavior: 'smooth' });
+  say('Terima kasih. Semoga kunjungan Anda lancar. Jika ada tamu lain, tekan tombol Isi Formulir Lagi.');
+}
+function restartForm() {
+  $('#v-terima').classList.add('hide');
+  $('#v-registrasi').classList.remove('hide');
+  guideIdx = -1;
+  lastHint = '';
+  scrollTo({ top: 0, behavior: 'smooth' });
+  say('Silakan isi formulir untuk tamu berikutnya. Tekan Mulai panduan jika butuh bantuan.');
+}
+$('#again').onclick = restartForm;
+
+/* =====================================================================
+   5. ASISTEN: SUARA, PANDUAN & TANYA-JAWAB
+   ===================================================================== */
+const GUIDE = [
+  ['pb', 'Tekan tombol Ambil Foto, hadapkan wajah Anda ke kamera, lalu tekan Ambil Foto sekali lagi.'],
+  ['nama', 'Isi nama lengkap tamu sesuai identitas.'],
+  ['usaha', 'Tuliskan nama perusahaan atau instansi asal Anda.'],
+  ['alamat', 'Isi alamat lengkap perusahaan Anda.'],
+  ['pegawai', 'Tulis nama pegawai PLN yang ingin Anda temui.'],
+  ['apd', 'Centang APD sesuai standar K3LH yang Anda pakai: safety helmet, safety shoes, dan seragam kerja. Jika tidak memakai satupun, pilih Tidak memakai APD.'],
+  ['perlu', 'Jelaskan singkat keperluan kunjungan Anda.'],
+  ['ktp', 'Isi nomor KTP 16 digit angka, atau nomor SIM atau paspor.'],
+  ['kend', 'Isi jenis kendaraan dan nomor polisi, misalnya Avanza L 1234 AB.'],
+  ['tag', 'Isi nomor name tag tamu yang diberikan petugas keamanan.'],
+  ['jml', 'Pilih jumlah tamu yang datang, dari 1 sampai 99.'],
+  ['sub', 'Semua sudah terisi. Tekan tombol Kirim Registrasi untuk menyelesaikan.']
+];
+
+const ADMIN_HELP = {
+  how: 'Di menu Dashboard, tekan tombol Check In pada tamu yang baru tiba. Saat tamu pulang, tekan Check Out pada baris yang sama.',
+  exp: 'Tekan tombol Export to Excel. Data akan disalin, lalu tempel dengan Ctrl V ke Excel.',
+  fil: 'Gunakan Tanggal Awal dan Tanggal Akhir untuk memilih rentang, atau ketik nama pada kolom Cari Nama Tamu.'
+};
+
+/* null = jalankan panduan */
+const FAQ = [
+  [/k3|keselamatan/, 'K3LH adalah Keselamatan, Kesehatan Kerja, dan Lingkungan Hidup. Di area PLN, tamu wajib memakai APD: safety helmet, safety shoes, dan seragam kerja. Saya juga memakai APD lengkap sebagai contoh: helm dengan lampu, kacamata safety, earmuff, rompi reflektif, sarung tangan, dan safety shoes.'],
+  [/ktp|identitas|sim|paspor/, 'Isi nomor KTP 16 digit angka, atau SIM 12 digit atau paspor bila tidak membawa KTP.'],
+  [/apd|helm|sepatu|seragam/, 'Centang APD yang Anda kenakan: safety helmet, safety shoes, dan seragam kerja.'],
+  [/kendaraan|polisi|plat|motor|mobil/, 'Tulis jenis kendaraan dan nomor polisinya, misalnya Avanza L 1234 AB.'],
+  [/tag|name/, 'Nomor name tag diberikan oleh petugas keamanan di pos.'],
+  [/foto|kamera/, 'Tekan tombol Ambil Foto. Kamera akan terbuka, lalu tekan Ambil Foto untuk memotret wajah Anda.'],
+  [/jumlah/, 'Pilih jumlah orang yang datang, dari 1 sampai 99, termasuk Anda sendiri.'],
+  [/kirim|simpan|selesai/, 'Setelah semua kolom bertanda bintang terisi, tekan Kirim Registrasi.'],
+  [/halo|hai|hi\b/, 'Halo! Ada yang bisa saya bantu?'],
+  [/mulai|panduan|bantu/, null]
+];
+
+/* ----- State asisten ----- */
+let guideIdx = -1, lastHint = '', quiet = false;
+let voiceOn = true, speaking = false, waveUntil = 0;
+let audioUnlocked = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
+let pendingSpeech = null, lastActivity = Date.now(), idleNotified = false, bubbleTimer;
+const greeted = {};
+const msgBox = $('#msgs');
+
+/* ----- Pesan ----- */
+function addMsg(text, cls) {
+  const d = document.createElement('div');
+  d.className = 'm ' + cls;
+  d.textContent = text;
+  msgBox.appendChild(d);
+  msgBox.scrollTop = 1e9;
+}
+function say(text) {
+  waveUntil = performance.now() + 2600;
+  addMsg(text, 'b');
+  speak(text);
+  showBubble(text);
+}
+function showBubble(text) {
+  if (!$('#panel').classList.contains('hide')) return;
+  const b = $('#bub');
+  b.textContent = text;
+  b.classList.remove('hide');
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => b.classList.add('hide'), Math.max(5000, text.length * 75));
+}
+function botHello(page) {
+  const key = page + role;
+  if (greeted[key]) return;
+  greeted[key] = true;
+  say(page === 'registrasi'
+    ? 'Halo! Saya asisten virtual PLN. Tekan Mulai panduan, dan saya akan membantu Anda mengisi formulir tamu langkah demi langkah.'
+    : 'Halo admin! Di sini Anda dapat memantau tamu, melakukan check in dan check out, serta menyalin data ke Excel.');
+}
+
+/* ----- Suara (text-to-speech) ----- */
+let voices = [], speakTimer = null, currentUtterance = null, noVoiceWarned = false;
+function loadVoices() { try { voices = speechSynthesis.getVoices(); } catch (e) {} }
+/* Pilih suara Indonesia; utamakan suara Natural/Online (Edge) bila ada */
+function pickVoice() {
+  const idVoices = voices.filter(v => /^id([-_]|$)/i.test(v.lang));
+  return idVoices.find(v => /natural|online/i.test(v.name)) || idVoices[0] || null;
+}
+function speak(text) {
+  if (!voiceOn || !('speechSynthesis' in window)) return;
+  if (!audioUnlocked) { pendingSpeech = text; return; }
+  try {
+    if (!voices.length) loadVoices();
+    const voice = pickVoice();
+    if (!voice && voices.length && !noVoiceWarned) {
+      noVoiceWarned = true;
+      addMsg('Catatan: suara bahasa Indonesia belum terpasang di perangkat ini, jadi suara mungkin terdengar kurang tepat. Di Edge/Windows tambahkan lewat Pengaturan > Waktu & bahasa > Ucapan.', 'b');
+    }
+    speechSynthesis.cancel();
+    speechSynthesis.resume();                       // Edge kadang macet dalam keadaan "paused"
+    const u = new SpeechSynthesisUtterance(text);
+    if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'id-ID';
+    u.onstart = () => speaking = true;
+    u.onend = () => speaking = false;
+    u.onerror = e => {
+      speaking = false;
+      if (e.error === 'not-allowed') { audioUnlocked = false; pendingSpeech = text; }   // tunggu interaksi berikutnya
+    };
+    currentUtterance = u;                           // cegah utterance dibuang garbage collector
+    clearTimeout(speakTimer);
+    speakTimer = setTimeout(() => speechSynthesis.speak(u), 80);   // jeda setelah cancel() agar tidak hilang
+  } catch (e) {}
+}
+$('#spk').onclick = () => {
+  voiceOn = !voiceOn;
+  if (!voiceOn) { try { speechSynthesis.cancel(); } catch (e) {} speaking = false; }
+  $('#spk').textContent = voiceOn ? '🔊 Suara: aktif' : '🔇 Suara: mati';
+};
+/* Browser baru mengizinkan suara setelah interaksi pertama */
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, () => {
+  lastActivity = Date.now();
+  idleNotified = false;
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  if (pendingSpeech) { const p = pendingSpeech; pendingSpeech = null; speak(p); }
+}, { passive: true }));
+
+/* ----- Panduan langkah demi langkah ----- */
+function goStep(i) {
+  if (i < 0 || i >= GUIDE.length) return;
+  guideIdx = i;
+  const [id, text] = GUIDE[i];
+  (id === 'apd' ? $('#apdl') : $('#' + id)).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  quiet = true;
+  if (id !== 'apd') $('#' + id).focus({ preventScroll: true });
+  quiet = false;
+  lastHint = id;
+  say(`Langkah ${i + 1} dari ${GUIDE.length}. ${text}`);
+}
+function openForm() { if ($('#v-registrasi').classList.contains('hide')) location.hash = '#registrasi'; }
+
+/* Maju otomatis setelah kolom terisi */
+GUIDE.forEach(([id], i) => {
+  if (id === 'apd' || id === 'sub') return;
+  $('#' + id).addEventListener('change', () => {
+    if (guideIdx === i && $('#' + id).value.trim() && !(id === 'ktp' && ktpError())) setTimeout(() => goStep(i + 1), 400);
+  });
+});
+/* Petunjuk singkat saat kolom difokuskan */
+document.addEventListener('focusin', e => {
+  if (quiet || e.target.id === 'pb') return;
+  const i = GUIDE.findIndex(g => g[0] === e.target.id);
+  if (i < 0 || e.target.id === lastHint) return;
+  lastHint = e.target.id;
+  guideIdx = i;
+  say(GUIDE[i][1]);
+});
+/* Tawarkan bantuan jika pengunjung diam di formulir */
+setInterval(() => {
+  if (Date.now() - lastActivity > 25000 && !idleNotified && !$('#v-registrasi').classList.contains('hide')) {
+    idleNotified = true;
+    say('Butuh bantuan mengisi formulir? Ketuk saya, lalu pilih Mulai panduan.');
+  }
+}, 5000);
+
+/* ----- Tanya jawab ----- */
+function todaySummary() {
+  const t = ymd(), today = data.filter(r => r.tgl === t);
+  const waiting = today.filter(r => r.status === 'Menunggu').length;
+  const inside = today.filter(r => r.status === 'Check In').length;
+  const out = data.filter(r => r.outAt === t).length;
+  return `Hari ini ada ${today.length} tamu terdaftar: ${waiting} menunggu, ${inside} sedang berada di lokasi, dan ${out} sudah check out.`;
+}
+function answer(q) {
+  if (/terima\s*kasih|makasih|thanks?|thank you/.test(q)) {
+    const onForm = !$('#v-registrasi').classList.contains('hide');
+    return onForm ? showThanks('') : say('Sama-sama! Senang bisa membantu.');
+  }
+  if (role === 'admin') {
+    if (/ringkas|rekap|hari ini|berapa/.test(q)) return say(todaySummary());
+    if (/check|masuk|keluar/.test(q)) return say(ADMIN_HELP.how);
+    if (/export|excel|unduh|salin/.test(q)) return say(ADMIN_HELP.exp);
+    if (/cari|filter|tanggal/.test(q)) return say(ADMIN_HELP.fil);
+  }
+  const hit = FAQ.find(([re]) => re.test(q));
+  if (hit && hit[1] === null) { openForm(); return goStep(0); }
+  say(hit ? hit[1] : 'Maaf, saya belum paham. Coba tanya soal KTP, APD, kendaraan, name tag, atau tekan Mulai panduan.');
+}
+function ask() {
+  const text = $('#ci').value.trim();
+  if (!text) return;
+  $('#ci').value = '';
+  addMsg(text, 'u');
+  answer(text.toLowerCase());
+}
+$('#cs').onclick = ask;
+$('#ci').onkeydown = e => { if (e.key === 'Enter') ask(); };
+
+/* ----- Tombol cepat ----- */
+function renderChips() {
+  $('#chips').innerHTML = role === 'admin'
+    ? '<button data-c="sum">Ringkasan hari ini</button><button data-c="how">Cara check in/out</button><button data-c="exp">Export data</button><button data-c="start">Panduan formulir</button>'
+    : '<button data-c="start">Mulai panduan</button><button data-c="next">Lanjut</button><button data-c="again">Ulangi</button>';
+}
+$('#chips').onclick = e => {
+  const c = e.target.dataset.c;
+  if (!c) return;
+  if (c === 'sum') return say(todaySummary());
+  if (c === 'how') return say(ADMIN_HELP.how);
+  if (c === 'exp') return say(ADMIN_HELP.exp);
+  openForm();
+  if (c === 'start') goStep(0);
+  if (c === 'next') goStep(guideIdx + 1);
+  if (c === 'again') goStep(Math.max(guideIdx, 0));
+};
+
+/* ----- Buka / tutup panel ----- */
+let wasDragged = false;
+$('#fab').onclick = () => {
+  if (wasDragged) { wasDragged = false; return; }
+  $('#bub').classList.add('hide');
+  $('#panel').classList.toggle('hide');
+  if (!$('#panel').classList.contains('hide')) botHello(location.hash === '#registrasi' || role !== 'admin' ? 'registrasi' : 'dashboard');
+  else { try { speechSynthesis.cancel(); } catch (e) {} }
+};
+$('#bub').onclick = () => $('#fab').click();
+
+/* ----- Robot bisa digeser dengan kursor atau jari ----- */
+(function enableDrag() {
+  const bot = $('#bot'), fab = $('#fab');
+  let startX = 0, startY = 0, originX = 0, originY = 0, moved = false, down = false;
+  fab.title = 'Geser untuk memindahkan robot';
+
+  function place(x, y) {
+    const w = bot.offsetWidth, h = bot.offsetHeight;
+    x = Math.max(0, Math.min(innerWidth - w, x));
+    y = Math.max(0, Math.min(innerHeight - h, y));
+    Object.assign(bot.style, { left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto' });
+    bot.classList.toggle('left', x + w / 2 < innerWidth / 2);
+    bot.classList.toggle('top', y < 290);
+  }
+  function end() {
+    if (!down) return;
+    down = false;
+    bot.classList.remove('drag');
+    if (moved) {
+      wasDragged = true;
+      setTimeout(() => wasDragged = false, 60);
+      store.set('vms-pos', { x: parseFloat(bot.style.left), y: parseFloat(bot.style.top) });
+    }
+  }
+  fab.addEventListener('pointerdown', e => {
+    down = true; moved = false; startX = e.clientX; startY = e.clientY;
+    const r = bot.getBoundingClientRect(); originX = r.left; originY = r.top;
+    try { fab.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  fab.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (!moved && Math.hypot(dx, dy) < 6) return;
+    moved = true;
+    bot.classList.add('drag');
+    place(originX + dx, originY + dy);
+  });
+  fab.addEventListener('pointerup', end);
+  fab.addEventListener('pointercancel', end);
+
+  const saved = store.get('vms-pos', null);
+  if (saved && isFinite(saved.x) && isFinite(saved.y)) place(saved.x, saved.y);
+  addEventListener('resize', () => { if (bot.style.left) place(parseFloat(bot.style.left), parseFloat(bot.style.top)); });
+})();
+
+/* =====================================================================
+   6. ROBOT 3D — "VOLTI", petugas K3LH berseragam lengkap
+   APD standar K3LH: safety helmet (+ lampu & logo), kacamata safety,
+   earmuff, seragam kerja (wearpack), rompi reflektif, sarung tangan,
+   dan safety shoes dengan toe cap baja.
+   ===================================================================== */
+let renderer, scene, camera, rig, robot;
+
+function createRobot(T) {
+  const mat = (color, opt = {}) => new T.MeshStandardMaterial({ color, roughness: .35, metalness: .1, ...opt });
+  const C = {
+    white: mat(0xf4f7f9), blue: mat(0x0a8fd8, { roughness: .5 }), yellow: mat(0xffe600),
+    ridge: mat(0xd9be00), orange: mat(0xff7a00, { roughness: .6, side: T.DoubleSide }),
+    red: mat(0xe2231a), glove: mat(0xffb300, { roughness: .7 }), boot: mat(0x1a1a1a, { roughness: .6 }),
+    visor: mat(0x0b1b33, { roughness: .12, metalness: .4 }), metal: mat(0xb8c2c8, { metalness: .5 }),
+    strip: mat(0xe8eef2, { metalness: .7, roughness: .2 }),
+    glass: mat(0x9fe8ff, { transparent: true, opacity: .25, roughness: .05, metalness: .2 }),
+    glow: mat(0x22e6ff, { emissive: 0x22e6ff, emissiveIntensity: 1 }),
+    lamp: mat(0xfff3b0, { emissive: 0xffd400, emissiveIntensity: 1 })
+  };
+  /* Bola yang bisa dipipihkan: ball(radius, material, [sx,sy,sz], [x,y,z], parent) */
+  const ball = (r, m, [sx, sy, sz], [x, y, z], parent) => {
+    const o = new T.Mesh(new T.SphereGeometry(r, 32, 20), m);
+    o.scale.set(sx, sy, sz); o.position.set(x, y, z); parent.add(o);
+    return o;
+  };
+  const cyl = (rt, rb, h, m, [x, y, z], parent, open = false) => {
+    const o = new T.Mesh(new T.CylinderGeometry(rt, rb, h, 40, 1, open), m);
+    o.position.set(x, y, z); parent.add(o);
+    return o;
+  };
+  const bolt = (m, k = 1) => {                                      // simbol petir
+    const shape = new T.Shape();
+    [[.05, .2], [-.12, -.03], [-.01, -.03], [-.06, -.22], [.12, .04], [.01, .04]]
+      .forEach(([x, y], i) => i ? shape.lineTo(x * k, y * k) : shape.moveTo(x * k, y * k));
+    return new T.Mesh(new T.ShapeGeometry(shape), m);
+  };
+
+  const g = new T.Group();
+
+  /* --- Kepala --- */
+  const head = new T.Group();
+  head.position.y = .9;
+  g.add(head);
+  ball(1, C.white, [1.2, .95, 1], [0, 0, 0], head);
+  ball(.8, C.visor, [1.2, .78, .4], [0, 0, .8], head);
+  ball(.8, C.glass, [1.26, .5, .43], [0, .06, .8], head);           // kacamata safety
+  [-1, 1].forEach(k => {                                             // earmuff
+    const ear = cyl(.3, .3, .22, C.orange, [k * 1.28, 0, 0], head);
+    ear.rotation.z = Math.PI / 2;
+  });
+  const eyes = new T.Group();                                        // mata LED
+  eyes.position.y = .12;
+  head.add(eyes);
+  [-.3, .3].forEach(x => ball(.1, C.glow, [1, 1.5, .4], [x, 0, 1.12], eyes));
+  const smile = new T.Mesh(new T.TorusGeometry(.17, .03, 8, 24, Math.PI), C.glow);
+  smile.rotation.z = Math.PI;
+  smile.position.set(0, -.02, 1.12);
+  head.add(smile);
+  const mouth = ball(.12, C.glow, [1.6, .2, .3], [0, -.22, 1.12], head);   // mulut saat bicara
+  mouth.visible = false;
+
+  /* --- Safety helmet --- */
+  const dome = new T.Mesh(new T.SphereGeometry(1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2), C.yellow);
+  dome.scale.set(1.25, .85, 1.12);
+  dome.position.y = .38;
+  head.add(dome);
+  const brim = new T.Mesh(new T.CylinderGeometry(1.3, 1.3, .07, 40, 1, false, -Math.PI * .55, Math.PI * 1.1), C.yellow);
+  brim.scale.z = 1.15;
+  brim.position.y = .4;
+  head.add(brim);
+  const ridge = new T.Mesh(new T.TorusGeometry(1, .05, 8, 40, Math.PI), C.ridge);   // rusuk helm
+  ridge.rotation.y = Math.PI / 2;
+  ridge.scale.set(1.13, .87, 1);
+  ridge.position.y = .38;
+  head.add(ridge);
+  const badge = new T.Mesh(new T.BoxGeometry(.4, .28, .03), C.white);               // logo PLN di helm
+  badge.position.set(0, .78, 1.0);
+  badge.rotation.x = -.5;
+  head.add(badge);
+  const badgeBolt = bolt(C.blue, .8);
+  badgeBolt.position.z = .02;
+  badge.add(badgeBolt);
+  const tip = ball(.09, C.lamp, [1, 1, 1], [0, 1.02, .74], head);                   // lampu helm
+
+  /* --- Badan: wearpack + rompi reflektif --- */
+  ball(1, C.blue, [.75, .8, .62], [0, -.75, 0], g);
+  const vest = new T.Mesh(new T.SphereGeometry(1, 32, 16, 0, Math.PI * 2, Math.PI * .28, Math.PI * .46), C.orange);
+  vest.scale.set(.77, .82, .64);
+  vest.position.y = -.75;
+  g.add(vest);
+  [[-.72, .775, .645], [-.98, .745, .62]].forEach(([y, sx, sz]) => {  // strip reflektif
+    const s = cyl(1, 1, .07, C.strip, [0, y, 0], g, true);
+    s.scale.set(sx, 1, sz);
+  });
+  const emblem = new T.Group();                                      // logo PLN di rompi
+  emblem.position.set(0, -.45, .6);
+  emblem.rotation.x = -.1;
+  g.add(emblem);
+  const disc = cyl(.24, .24, .05, C.yellow, [0, 0, 0], emblem);
+  disc.rotation.x = Math.PI / 2;
+  const emblemBolt = bolt(C.red, .95);
+  emblemBolt.position.z = .03;
+  emblem.add(emblemBolt);
+
+  /* --- Lengan: sleeve wearpack + sarung tangan (kanan melambai) --- */
+  const makeArm = side => {
+    const a = new T.Group();
+    a.position.set(side * .8, -.55, 0);
+    ball(.15, C.blue, [1, 1, 1], [0, 0, 0], a);
+    ball(.13, C.blue, [1, 2.6, 1], [0, -.3, 0], a);
+    ball(.17, C.glove, [1, 1, .9], [0, -.68, 0], a);
+    ball(.065, C.glove, [1, 1, 1], [side * .13, -.62, .05], a);       // ibu jari
+    g.add(a);
+    return a;
+  };
+  makeArm(-1).rotation.z = -.3;
+  const arm = makeArm(1);
+  arm.rotation.z = .3;
+
+  /* --- Kaki: celana wearpack + safety shoes --- */
+  [-.28, .28].forEach(x => {
+    cyl(.15, .14, .5, C.blue, [x, -1.65, 0], g);
+    cyl(.16, .16, .06, C.strip, [x, -1.88, 0], g);                    // strip reflektif di pergelangan
+    ball(.24, C.boot, [1, .7, 1.55], [x, -2.0, .12], g);              // sepatu
+    ball(.18, C.metal, [1, .65, 1], [x, -1.99, .42], g);              // toe cap baja
+  });
+  const shadow = new T.Mesh(new T.CircleGeometry(.9, 40), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .18 }));
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = -2.17;
+  g.add(shadow);
+
+  return { g, head, eyes, mouth, smile, arm, tip };
+}
+
+function initRobot() {
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: $('#fabc'), alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(260, 380, false);
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(35, 260 / 380, .1, 50);
+    camera.position.set(0, 0, 8);
+    scene.add(new THREE.AmbientLight(0xffffff, .75));
+    const sun = new THREE.DirectionalLight(0xffffff, .8);
+    sun.position.set(2, 3, 4);
+    scene.add(sun);
+
+    rig = new THREE.Group();
+    scene.add(rig);
+    robot = createRobot(THREE);
+        rig.add(robot.g);
+    requestAnimationFrame(animate);
+  } catch (e) {
+    $('#fab').insertAdjacentHTML('afterbegin', '<div style="font-size:70px">🤖</div>');
+  }
+}
+
+function animate(ms) {
+  requestAnimationFrame(animate);
+  const t = ms / 1000, R = robot;
+
+  R.head.rotation.y = Math.sin(t * .8) * .25;                        // menoleh pelan
+  R.head.rotation.x = Math.sin(t * .6) * .05;
+  R.head.position.y = .9 + Math.sin(t * 1.6) * .03;                  // bernapas pelan
+
+  const talk = speaking ? .25 + Math.abs(Math.sin(t * 14)) * .85 : .2;   // gerak mulut
+  R.mouth.scale.y += (talk - R.mouth.scale.y) * .4;
+  R.mouth.visible = speaking;
+  R.smile.visible = !speaking;
+
+  const wave = speaking || ms < waveUntil;                           // lambaikan tangan
+  R.arm.rotation.z += ((wave ? 2.5 + Math.sin(t * 8) * .3 : .3) - R.arm.rotation.z) * .15;
+
+  R.eyes.scale.y = (Math.sin(t * 1.3) > .985 || (t % 4) > 3.9) ? .1 : 1;   // berkedip
+  R.tip.material.emissiveIntensity = .6 + Math.sin(t * 4) * .4;      // lampu helm berkedip
+
+  renderer.render(scene, camera);
+}
+
+/* =====================================================================
+   7. INISIALISASI
+   ===================================================================== */
+if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = loadVoices; loadVoices(); }
+initRobot();
+setRole(role);
+</script>
+</body>
+</html>
